@@ -1,0 +1,28 @@
+[
+    {
+        "field": "Email",
+        "rules": [
+            {
+                "type": "contains",
+                "value": "@loxhill.com",
+                "tag": "loxhill"
+            }
+        ]
+    },
+    {
+        "field": "Items",
+        "rules": [
+            {
+                "type": "count",
+                "op": "gteq",
+                "value": 2,
+                "tag": "multiple-items"
+            },
+            {
+                "type": "contains",
+                "value": "jumper",
+                "tag": "clothing"
+            }
+        ]
+    }
+]
