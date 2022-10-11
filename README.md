@@ -1,61 +1,90 @@
 # go-tagger
-A simple tagging library that can use a set of defined rules to return a list of applicable textual tags for any given struct. 
+
+> ⚠️ go-tagger is currently in early development. APIs and features will likely change in the full release.  **Use in production at your own risk**.
+
+A simple tagging library that uses a set of defined rules to return a list of textual tags for any given struct. 
 
 It's currently used in the wild for an e-commerce order processing pipeline. It tags thousands of orders to be used downstream for fraud detection, prioritisation, efficient dispatch, filtering and more.
 
 ## Usage
 
-Here is a basic snippet of Go code and a sample rule file. This will return the `disposable-email` and `multiple-items` tags.
-
-```go
-  order := Order{
-    Email: "grant@email.com",
-    Address: OrderAddress{
-        Postcode: "PE20 1PH",
-    },
-  }
-  
-  tagger := NewTagger()
-  tagger.LoadRules("resources/rules.json")
-  tags := tagger.Tag(order)
-  fmt.Println(tags)
-```
+Using go-tagger is simple. Start by creating your rules file, then see the code example below on how you'd get started. 
 
 ```json
-{
-  "Email": [
+[
     {
-      "type": "contains",
-      "value": "@kvhrr.com",
-      "tag": "disposable-email"
-    }
-  ],
-  "Items": [
+        "field": "Email",
+        "rules": [
+            {
+                "type": "contains",
+                "value": "@gmail.com",
+                "tag": "gmail"
+            }
+        ]
+    },
     {
-      "type": "count",
-      "op": "gteq",
-      "value": 2,
-      "tag": "multiple-items"
+        "field": "Items.Title",
+        "rules": [
+            {
+                "type": "count",
+                "op": "gteq",
+                "value": 2,
+                "tag": "multiple-items"
+            },
+            {
+                "type": "contains",
+                "value": "iphone",
+                "tag": "warehouse-b"
+            }
+        ]
     }
-  ],
-  "Value": [
-    {
-      "type": "value",
-      "op": "gteq",
-      "value": 1000,
-      "tag": "high-value"
+]
+```
+
+```go
+order := Order{
+    Email: "user1@gmail.com",
+    Items: []Item{
+        {
+            Title: "10 Colors Refrigerator Magnets",
+        },
+        {
+            Title: "Mens Jumper Classic Sweater with V-Neck and Long Sleeve",
+        },
+    },
+}
+  
+t := NewTagger()
+t.LoadRules("resources/rules.json")
+tags := t.Tag(order)
+
+fmt.Println(tags) 
+// Output [gmail, multiple-items]
+```
+
+## Docs
+See the following documentation for more advanced go-tagger usage. Have a question? Please use [GitHub Discussions](https://github.com/loxhill/go-tagger). 
+
+- [Nested Struct Fields](#Nested Struct Fields)
+
+
+### Nested Struct Fields
+If you have a nested struct like below, you rule groups need to specify which specific field you want to parse. Just specifying `Contact` in the below example would not work as it is a struct.
+
+```go
+order := Order{
+    Contact: {
+        Email: "user1@gmail.com",
     }
-  ]
 }
 ```
 
-## Todo
+In your rule group, for the field attribute, use a period to specify nested struct fields like so (`Contact.Email`).
 
-- Use reflection to decide how to process the value in a rule  
-  https://pkg.go.dev/reflect
-- Load rules from json
-- Allow users to store rules in a DB and load them into Tagger rather than load from json file.
+```json
+{
+    "field": "Contact.Email",
+    "rules": [...]
+}
+```
 
-## Ideas
-
-- Regex in rules

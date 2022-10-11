@@ -5,35 +5,85 @@ import (
 	"strings"
 )
 
-func getTags(ruleGroup RuleGroup, fieldContent reflect.Value) (tags []string) {
+type Engine struct {
+	Rules []RuleGroup
+	Tags  []string
+}
+
+func (e *Engine) parseField(field string, data reflect.Value) (tags []string) {
+	switch data.Kind() {
+	case reflect.Slice:
+		tags = append(tags, e.scanElement(field, data)...)
+		for i := 0; i < data.Len(); i++ {
+			tags = e.parseField(field, data.Index(i))
+		}
+	case reflect.Struct:
+		for i := 0; i < data.NumField(); i++ {
+			title := field + "." + data.Type().Field(i).Name
+			tags = e.parseField(title, data.Field(i))
+		}
+	case reflect.String, reflect.Int, reflect.Float64, reflect.Float32:
+		tags = append(tags, e.scanElement(field, data)...)
+	}
+	return e.Tags
+}
+
+// scanElement is used to scan data once we've got past the layers within the struct/slice.
+func (e *Engine) scanElement(name string, data reflect.Value) (tags []string) {
+	ruleGroup := e.findRuleGroupForField(name)
 	for _, rule := range ruleGroup.Rules {
-		tripped := checkSingleRule(rule, fieldContent)
-		if tripped {
-			tags = append(tags, rule.Tag)
+		processedTags := e.processRule(rule, data)
+		if processedTags != "" {
+			e.Tags = append(e.Tags, processedTags)
 		}
 	}
 	return tags
 }
 
-func checkSingleRule(rule Rule, content reflect.Value) (tripped bool) {
+func (e *Engine) findRuleGroupForField(name string) RuleGroup {
+	for _, r := range e.Rules {
+		if r.Field == name {
+			return r
+		}
+	}
+	return RuleGroup{}
+}
+
+func (e *Engine) processRule(rule Rule, data reflect.Value) string {
+	tripped := false
 	switch rule.Type {
 	case "contains":
-		tripped = checkContainsRule(rule.Value, content)
+		tripped = e.checkContainsRule(rule.Value, data)
 	case "count":
-		tripped = checkCountRule(rule, content)
+		tripped = e.checkCountRule(rule, data)
 	default:
 		tripped = false
+	}
+	if tripped {
+		return rule.Tag
+	}
+	return ""
+}
+
+func (e *Engine) checkContainsRule(value interface{}, data reflect.Value) (tripped bool) {
+	switch data.Kind() {
+	case reflect.String:
+		if strings.Contains(strings.ToLower(data.String()), strings.ToLower(value.(string))) {
+			tripped = true
+		}
 	}
 	return tripped
 }
 
-func checkCountRule(rule Rule, content reflect.Value) (tripped bool) {
+func (e *Engine) checkCountRule(rule Rule, data reflect.Value) (tripped bool) {
 	var val float64
-	switch content.Kind() {
+	switch data.Kind() {
 	case reflect.Slice:
-		val = float64(content.Len())
+		val = float64(data.Len())
 	case reflect.Int:
-		val = float64(content.Int())
+		val = float64(data.Int())
+	case reflect.Float64, reflect.Float32:
+		val = data.Float()
 	}
 	switch rule.Op {
 	case "eq":
@@ -44,24 +94,9 @@ func checkCountRule(rule Rule, content reflect.Value) (tripped bool) {
 		if val >= rule.Value.(float64) {
 			tripped = true
 		}
-	}
-	return tripped
-}
-
-func checkContainsRule(value interface{}, content reflect.Value) (tripped bool) {
-	switch content.Kind() {
-	case reflect.String:
-		if strings.Contains(strings.ToLower(content.String()), strings.ToLower(value.(string))) {
+	case "gt":
+		if val > rule.Value.(float64) {
 			tripped = true
-		}
-	case reflect.Slice:
-		for i := 0; i < content.Len(); i++ {
-			val := content.Index(i)
-			tripped = checkContainsRule(value, val)
-		}
-	case reflect.Struct:
-		for i := 0; i < content.NumField(); i++ {
-			tripped = checkContainsRule(value, content.Field(0))
 		}
 	}
 	return tripped

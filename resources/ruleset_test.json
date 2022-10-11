@@ -17,11 +17,27 @@
                 "op": "gteq",
                 "value": 2,
                 "tag": "multiple-items"
-            },
+            }
+        ]
+    },
+    {
+        "field": "Items.Title",
+        "rules": [
             {
                 "type": "contains",
                 "value": "jumper",
                 "tag": "clothing"
+            }
+        ]
+    },
+    {
+        "field": "Items.Options.Weight",
+        "rules": [
+            {
+                "type": "count",
+                "op": "gt",
+                "value": 0.3,
+                "tag": "heavy"
             }
         ]
     }

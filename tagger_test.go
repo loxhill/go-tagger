@@ -15,7 +15,13 @@ type Order struct {
 	Address OrderAddress
 }
 type Item struct {
-	Title string
+	Title   string
+	Price   float32
+	Options ItemOptions
+}
+type ItemOptions struct {
+	Colour string
+	Weight float32
 }
 type OrderAddress struct {
 	Postcode string
@@ -26,7 +32,11 @@ func TestContains(t *testing.T) {
 		Email: "hello@loxhill.com",
 		Items: []Item{
 			{
-				Title: "16 Pack Rechargeable AA Batteries",
+				Title: "Mens Jumper Classic Sweater with V-Neck and Long Sleeve",
+				Options: ItemOptions{
+					Colour: "Red",
+					Weight: 0.1,
+				},
 			},
 		},
 	}
@@ -36,6 +46,31 @@ func TestContains(t *testing.T) {
 }
 
 func TestCount(t *testing.T) {
+	order := Order{
+		Email: "hello@loxhill.com",
+		Items: []Item{
+			{
+				Title: "Colored Refrigerator Magnets (10-pack)",
+				Options: ItemOptions{
+					Colour: "Multi",
+					Weight: 0.2,
+				},
+			},
+			{
+				Title: "Mens Jumper Classic Sweater with V-Neck and Long Sleeve",
+				Options: ItemOptions{
+					Colour: "Red",
+					Weight: 0.4,
+				},
+			},
+		},
+	}
+	tags := timeAndStart(order)
+	assert.Contains(t, tags, "multiple-items")
+	assert.Contains(t, tags, "heavy")
+}
+
+func TestSlice(t *testing.T) {
 	order := Order{
 		Email: "user1@gmail.com",
 		Items: []Item{
@@ -48,7 +83,6 @@ func TestCount(t *testing.T) {
 		},
 	}
 	tags := timeAndStart(order)
-	assert.Contains(t, tags, "multiple-items")
 	assert.Contains(t, tags, "clothing")
 }
 

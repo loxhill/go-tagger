@@ -1,8 +1,8 @@
 package tagger
 
 import (
+	"fmt"
 	"reflect"
-	"strings"
 )
 
 type Tagger struct {
@@ -24,17 +24,14 @@ func (t *Tagger) LoadRules(path string) {
 }
 
 // Tag will begin tagging the provided sample based on the rules loaded with LoadRules.
+// https://www.freecodecamp.org/news/iteration-in-golang/
 func (t *Tagger) Tag(sample interface{}) (tags []string) {
-	for _, group := range t.RuleGroups {
-		s := reflect.Indirect(reflect.ValueOf(sample))
-		fieldKeys := strings.Split(group.Field, ".")
-		field := s.FieldByName(fieldKeys[0])
-		if len(fieldKeys) < 1 {
-			for i := 1; 0 <= len(fieldKeys); i++ {
-				field = field.FieldByName(fieldKeys[i])
-			}
-		}
-		tags = append(tags, getTags(group, field)...)
+	s := reflect.ValueOf(sample)
+	types := s.Type()
+	for i := 0; i < s.NumField(); i++ {
+		e := Engine{Rules: t.RuleGroups}
+		tags = append(tags, e.parseField(types.Field(i).Name, s.Field(i))...)
 	}
+	fmt.Println(tags)
 	return tags
 }
