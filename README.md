@@ -6,6 +6,9 @@ A simple tagging library that uses a set of defined rules to return a list of te
 
 It's currently used in the wild for an e-commerce order processing pipeline. It tags thousands of orders to be used downstream for fraud detection, prioritisation, efficient dispatch, filtering and more.
 
+- [Usage](#usage)
+- [Documentation](#docs)
+
 ## Usage
 
 Using go-tagger is simple. Start by creating your rules file, then see the code example below on how you'd get started. 
@@ -23,18 +26,13 @@ Using go-tagger is simple. Start by creating your rules file, then see the code 
         ]
     },
     {
-        "field": "Items.Title",
+        "field": "Items",
         "rules": [
             {
                 "type": "count",
                 "op": "gteq",
                 "value": 2,
                 "tag": "multiple-items"
-            },
-            {
-                "type": "contains",
-                "value": "iphone",
-                "tag": "warehouse-b"
             }
         ]
     }
@@ -65,7 +63,7 @@ fmt.Println(tags)
 ## Docs
 See the following documentation for more advanced go-tagger usage. Have a question? Please use [GitHub Discussions](https://github.com/loxhill/go-tagger). 
 
-- [Nested Struct Fields](#Nested Struct Fields)
+- [Nested Struct Fields](#nested-struct-fields)
 
 
 ### Nested Struct Fields
