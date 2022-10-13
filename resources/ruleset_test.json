@@ -40,5 +40,15 @@
                 "tag": "heavy"
             }
         ]
+    },
+    {
+        "field": "Address.Residential",
+        "rules": [
+            {
+                "type": "bool",
+                "value": true,
+                "tag": "residential"
+            }
+        ]
     }
 ]

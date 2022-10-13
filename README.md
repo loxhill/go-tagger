@@ -63,8 +63,24 @@ fmt.Println(tags)
 ## Docs
 See the following documentation for more advanced go-tagger usage. Have a question? Please use [GitHub Discussions](https://github.com/loxhill/go-tagger). 
 
+- [Rule Types](#rule-types)
+- [Count Operators](#count-operators)
 - [Nested Struct Fields](#nested-struct-fields)
 
+### Rule Types
+| Type     | Description                                                             |
+|----------|-------------------------------------------------------------------------|
+| contains | Checks the contents of the field against a value.                       |
+| count    | Compares the field against a value using [operators](#count-operators). |
+| bool     | Checks whether a field is true or false.                                |
+
+### Count Operators
+
+- **gt** — Greater than
+- **gteq** — Greater than or equals
+- **lt** — Less than
+- **lteq** — Less than or equals
+- **eq** — Equals
 
 ### Nested Struct Fields
 If you have a nested struct like below, you rule groups need to specify which specific field you want to parse. Just specifying `Contact` in the below example would not work as it is a struct.

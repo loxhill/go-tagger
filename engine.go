@@ -22,7 +22,7 @@ func (e *Engine) parseField(field string, data reflect.Value) (tags []string) {
 			title := field + "." + data.Type().Field(i).Name
 			tags = e.parseField(title, data.Field(i))
 		}
-	case reflect.String, reflect.Int, reflect.Float64, reflect.Float32:
+	case reflect.String, reflect.Int, reflect.Float64, reflect.Float32, reflect.Bool:
 		tags = append(tags, e.scanElement(field, data)...)
 	}
 	return e.Tags
@@ -56,6 +56,8 @@ func (e *Engine) processRule(rule Rule, data reflect.Value) string {
 		tripped = e.checkContainsRule(rule.Value, data)
 	case "count":
 		tripped = e.checkCountRule(rule, data)
+	case "bool":
+		tripped = e.checkBoolRule(rule.Value, data)
 	default:
 		tripped = false
 	}
@@ -96,6 +98,24 @@ func (e *Engine) checkCountRule(rule Rule, data reflect.Value) (tripped bool) {
 		}
 	case "gt":
 		if val > rule.Value.(float64) {
+			tripped = true
+		}
+	case "lteq":
+		if val <= rule.Value.(float64) {
+			tripped = true
+		}
+	case "lt":
+		if val < rule.Value.(float64) {
+			tripped = true
+		}
+	}
+	return tripped
+}
+
+func (e *Engine) checkBoolRule(value interface{}, data reflect.Value) (tripped bool) {
+	switch data.Kind() {
+	case reflect.Bool:
+		if value.(bool) == data.Bool() {
 			tripped = true
 		}
 	}

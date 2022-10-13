@@ -24,7 +24,8 @@ type ItemOptions struct {
 	Weight float32
 }
 type OrderAddress struct {
-	Postcode string
+	Residential bool
+	Postcode    string
 }
 
 func TestContains(t *testing.T) {
@@ -84,6 +85,18 @@ func TestSlice(t *testing.T) {
 	}
 	tags := timeAndStart(order)
 	assert.Contains(t, tags, "clothing")
+}
+
+func TestBool(t *testing.T) {
+	order := Order{
+		Email: "user1@gmail.com",
+		Address: OrderAddress{
+			Postcode:    "AA1 1AA",
+			Residential: true,
+		},
+	}
+	tags := timeAndStart(order)
+	assert.Contains(t, tags, "residential")
 }
 
 func timeAndStart(order Order) (tags []string) {
